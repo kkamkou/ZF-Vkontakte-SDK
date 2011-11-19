@@ -115,6 +115,16 @@ class Vkontakte_Api
     */
     public function authorize($code = null)
     {
+        // should we get code from a session?
+        if (null === $code) {
+            if (empty($this->_session->code)) {
+                throw new Vkontakte_Api_Exception_Error(
+                    'The authorize method requires $code to be specified'
+                );
+            }
+            $code = $this->_session->code;
+        }
+
         // auth uri
         $uri = $this->_uriBuild(
             $this->_config['urlAccessToken'], array(
@@ -135,6 +145,7 @@ class Vkontakte_Api
         $this->_session->userId = $response->user_id;
         $this->_session->expiresIn = $response->expires_in;
         $this->_session->accessToken = $response->access_token;
+        $this->_session->code = $code;
 
         return true;
     }
