@@ -62,8 +62,6 @@ class Vkontakte_Api
     */
     public function __construct($vkId, $vkKey)
     {
-        $config = Zend_Registry::get('config');
-
         // default config
         $this->_config = array(
             'urlAccessToken'  => 'https://api.vk.com/oauth/access_token',
