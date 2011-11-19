@@ -84,7 +84,7 @@ class Vkontakte_Api
                 'storeresponse'   => true,
                 'strictredirects' => true,
                 'timeout'         => 10,
-                'useragent'       => 'CDDISKI'
+                'useragent'       => 'ZF-Vkontakte-SDK'
             )
         );
     }
