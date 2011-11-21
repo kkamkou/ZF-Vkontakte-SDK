@@ -12,11 +12,6 @@
  * @link     https://github.com/kkamkou/ZF-Vkontakte-SDK
  */
 
-require_once dirname(__FILE__) . '/Exception/Decode.php';
-require_once dirname(__FILE__) . '/Exception/Unauthorized.php';
-require_once dirname(__FILE__) . '/Exception/Request.php';
-require_once dirname(__FILE__) . '/Exception/Unauthorized.php';
-
 /**
 * Api for the vkontakte.ru, that uses Zend Framework
 *
@@ -52,6 +47,12 @@ class Vkontakte_Api
     * @var Zend_Http_Client
     */
     protected $_httpClient;
+
+    /**
+    * Holds last error message
+    * @var string
+    */
+    protected $_errorMessage;
 
     /**
     * Constructor
@@ -115,12 +116,14 @@ class Vkontakte_Api
     */
     public function authorize($code = null)
     {
+        // we should reset the error holder first
+        $this->_errorMessage = null;
+
         // should we get code from a session?
         if (null === $code) {
             if (empty($this->_session->code)) {
-                throw new Vkontakte_Api_Exception_Error(
-                    'The authorize method requires $code to be specified'
-                );
+                $this->_errorMessage = 'authorize requires $code to be specified';
+                return false;
             }
             $code = $this->_session->code;
         }
@@ -138,6 +141,7 @@ class Vkontakte_Api
         try {
             $response = $this->_request($uri);
         } catch (Exception $e) {
+            $this->_errorMessage = $e->getMessage();
             return false;
         }
 
@@ -181,6 +185,16 @@ class Vkontakte_Api
     }
 
     /**
+    * Returns message with error description
+    *
+    * @return string
+    */
+    public function getErrorMessage()
+    {
+        return $this->_errorMessage;
+    }
+
+    /**
     * Calls method
     *
     * @param  string $method
@@ -191,7 +205,7 @@ class Vkontakte_Api
     {
         // do we have access token
         if (!$this->getAccessToken()) {
-            throw new Vkontakte_Api_Exception_Unauthorized(
+            throw new Exception(
                 "No access_token found. Use getAuthUri, then authorize methods"
             );
         }
@@ -225,7 +239,7 @@ class Vkontakte_Api
         // lets send request and check what we have
         $response = $request->request();
         if (!$response->isSuccessful()) {
-            throw new Vkontakte_Api_Exception_Request(
+            throw new Exception(
                 'Request failed: ' . $request->getLastRequest()
             );
         }
@@ -233,14 +247,14 @@ class Vkontakte_Api
         // response has JSON format, we should decode it
         $decoded = @json_decode($response->getBody());
         if ($decoded === null) {
-            throw new Vkontakte_Api_Exception_Decode(
+            throw new Exception(
                 'Response is not JSON: ' . $response->getBody()
             );
         }
 
         // do we have something interesting?
         if (isset($decoded->error)) {
-            throw new Vkontakte_Api_Exception_Error(
+            throw new Exception(
                 "Response contains error({$decoded->error->error_code}): " .
                 $decoded->error->error_msg
             );
