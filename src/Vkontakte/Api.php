@@ -22,7 +22,7 @@
 *           $vkApi->authorize($_GET['code']);
 *       }
 *   } else {
-*       var_dump($vkApi->call('getProfiles')); // stdClass here!
+*       var_dump($vkApi->getProfiles(array($vkApi->getUid()))); // stdClass here!
 *   }
 */
 class Vkontakte_Api
@@ -196,20 +196,22 @@ class Vkontakte_Api
     *
     * @param  string $method
     * @param  array  $params (Default: array)
+    * @throws Exception if no access_token found
     * @return stdClass
     */
     public function call($method, array $params = array())
     {
-        // do we have access token
+        // do we have access token?
         if (!$this->getAccessToken()) {
             throw new Exception(
-                "No access_token found. Use getAuthUri, then authorize methods"
+                "No access_token found. Get uri first, then authorize."
             );
         }
 
-        // default set
-        $params['access_token'] = $this->getAccessToken();
-        $params['uid'] = $this->getUid();
+        // default set of parameters
+        if (!isset($params['access_token'])) {
+            $params['access_token'] = $this->getAccessToken();
+        }
 
         // auth uri
         $uri = $this->_uriBuild(
@@ -218,6 +220,16 @@ class Vkontakte_Api
 
         // making request
         return $this->_request($uri);
+    }
+
+    /**
+    * Quick access to vk functions
+    *
+    * @return stdClass
+    */
+    public function __call($name, $arguments)
+    {
+        return $this->call($name, $arguments);
     }
 
     /**
