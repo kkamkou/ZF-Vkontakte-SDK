@@ -1,7 +1,7 @@
 <?php
 /**
  * Licensed under the MIT License
- * Redistributions of files must retain the above copyright notice.
+ * Redistributions of files must retain the copyright notice below.
  *
  * @category ThirdParty
  * @author   Kanstantsin A Kamkou (2ka.by)
@@ -93,7 +93,7 @@ class Vkontakte_Api
     * Returns authorize link (login or access form)
     *
     * @param  string $redirectUri full-path for the redirect page, includes http(s)
-    * @param  array  $access (Default: array)
+    * @param  array  $access (Default: null)
     * @link   http://tinyurl.com/bm5htmu
     * @return string
     */
