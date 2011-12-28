@@ -241,16 +241,12 @@ class Vkontakte_Api
     */
     public function __call($name, $arguments)
     {
-        // we should normalize it
-        $params = array();
-        foreach ($arguments as $arg) {
-            if (!is_array($arg)) {
-                throw new Exception("Incorrect format of the argument.");
-            }
-            $params = array_merge($params, $arg);
+        // we should normalize name of function
+        if (isset($arguments[1])) {
+            $name = strtolower($arguments[1]) . '.' . $name;
         }
 
-        return $this->call($name, $params);
+        return $this->call($name, $arguments[0]);
     }
 
     /**
@@ -276,7 +272,7 @@ class Vkontakte_Api
         }
 
         // response has JSON format, we should decode it
-        $decoded = @json_decode($response->getBody());
+        $decoded = Zend_Json::decode($response->getBody(), Zend_Json::TYPE_OBJECT);
         if ($decoded === null) {
             throw new Exception(
                 'Response is not JSON: ' . $response->getBody()
@@ -291,7 +287,12 @@ class Vkontakte_Api
             );
         }
 
-        return $decoded;
+        // answer located in the response object
+        if (!isset($decoded->response)) {
+            throw new Exception('No "response" object found. String is: ' . $decoded);
+        }
+
+        return $decoded->response;
     }
 
     /**
