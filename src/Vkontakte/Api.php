@@ -123,7 +123,7 @@ class Vkontakte_Api
             return true;
         }
 
-        // should we get code from a session?
+        // should we get code from a session? (do we need this code?)
         if (null === $code) {
             $code = $this->_session->code;
             if (empty($code)) {
@@ -149,7 +149,7 @@ class Vkontakte_Api
             return false;
         }
 
-        // so, we have information about user, lets store it
+        // so, we have oAuth information, lets store it
         $this->_session->userId = $response->user_id;
         $this->_session->expiresIn = $response->expires_in;
         $this->_session->accessToken = $response->access_token;
@@ -211,16 +211,16 @@ class Vkontakte_Api
         // we should reset the error holder first
         $this->_errorMessage = null;
 
-        // do we have access token?
-        if (!$this->getAccessToken()) {
-            throw new Exception(
-                'No "access_token" found. Get uri first, then authorize.'
-            );
-        }
-
         // default set of parameters
         if (!isset($params['access_token'])) {
             $params['access_token'] = $this->getAccessToken();
+        }
+
+        // do we have access token?
+        if (!isset($params['access_token'])) {
+            throw new Exception(
+                'No "access_token" found. Get uri first, then authorize.'
+            );
         }
 
         // auth uri
