@@ -118,16 +118,18 @@ class Vkontakte_Api
     */
     public function authorize($code = null)
     {
-        // we should reset the error holder first
-        $this->_errorMessage = null;
+        // if there is already a user id, it is authorised
+        if ($this->getUid()) {
+            return true;
+        }
 
         // should we get code from a session?
         if (null === $code) {
-            if (empty($this->_session->code)) {
+            $code = $this->_session->code;
+            if (empty($code)) {
                 $this->_errorMessage = 'authorize requires "$code" to be specified';
                 return false;
             }
-            $code = $this->_session->code;
         }
 
         // auth uri
@@ -206,6 +208,9 @@ class Vkontakte_Api
     */
     public function call($method, array $params = array())
     {
+        // we should reset the error holder first
+        $this->_errorMessage = null;
+
         // do we have access token?
         if (!$this->getAccessToken()) {
             throw new Exception(
@@ -265,7 +270,8 @@ class Vkontakte_Api
         $response = $request->request();
         if (!$response->isSuccessful()) {
             throw new Exception(
-                'Request failed: ' . $request->getLastRequest()
+                "Request failed({$response->getStatus()}): {$response->getMessage()} at " .
+                    $request->getLastRequest()
             );
         }
 
