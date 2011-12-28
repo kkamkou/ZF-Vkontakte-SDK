@@ -13,17 +13,21 @@
 * Api for the vkontakte.ru, that uses Zend Framework
 *
 * @example
-*
 *   $vkApi = new Vkontakte_Api(ID, KEY);
 *   if (!$vkApi->getUid()) {
 *       if (empty($_GET['code'])) {
-*           echo $vkApi->getAuthUri(array('offline'), 'http://mysite.com/');
+*           echo $vkApi->getAuthUri('http://mysite.com/', array('offline'));
 *       } else {
 *           $vkApi->authorize($_GET['code']);
 *       }
 *   } else {
-*       var_dump($vkApi->getProfiles(array($vkApi->getUid()))); // stdClass here!
+*       var_dump($vkApi->getProfiles(array('uids' => $vkApi->getUid()))); // stdClass here!
 *   }
+*
+* Steps:
+*   1. $vkApi->getAuthUri('http://mysite.com/vk/', array('offline'));
+*   2. $vkApi->authorize($_GET['code']);
+*   3. $vkApi->VK_FUNCTION
 */
 class Vkontakte_Api
 {
@@ -88,16 +92,17 @@ class Vkontakte_Api
     /**
     * Returns authorize link (login or access form)
     *
-    * @param  array  $settings (Default: array)
-    * @param  string $redirectUri
+    * @param  string $redirectUri full-path for the redirect page, includes http(s)
+    * @param  array  $access (Default: array)
+    * @link   http://tinyurl.com/bm5htmu
     * @return string
     */
-    public function getAuthUri($settings = array(), $redirectUri)
+    public function getAuthUri($redirectUri, $access = null)
     {
         // authorize link
         return $this->_uriBuild(
             $this->_config['urlAuthorize'], array(
-                'scope'         => implode(',', (array)$settings),
+                'scope'         => implode(',', (array)$access),
                 'display'       => 'popup',
                 'redirect_uri'  => $redirectUri,
                 'response_type' => 'code'
@@ -119,7 +124,7 @@ class Vkontakte_Api
         // should we get code from a session?
         if (null === $code) {
             if (empty($this->_session->code)) {
-                $this->_errorMessage = 'authorize requires $code to be specified';
+                $this->_errorMessage = 'authorize requires "$code" to be specified';
                 return false;
             }
             $code = $this->_session->code;
@@ -204,7 +209,7 @@ class Vkontakte_Api
         // do we have access token?
         if (!$this->getAccessToken()) {
             throw new Exception(
-                "No access_token found. Get uri first, then authorize."
+                'No "access_token" found. Get uri first, then authorize.'
             );
         }
 
@@ -225,11 +230,22 @@ class Vkontakte_Api
     /**
     * Quick access to vk functions
     *
+    * @param  string $name
+    * @param  array  $arguments
     * @return stdClass
     */
     public function __call($name, $arguments)
     {
-        return $this->call($name, $arguments);
+        // we should normalize it
+        $params = array();
+        foreach ($arguments as $arg) {
+            if (!is_array($arg)) {
+                throw new Exception("Incorrect format of the argument.");
+            }
+            $params = array_merge($params, $arg);
+        }
+
+        return $this->call($name, $params);
     }
 
     /**
