@@ -4,6 +4,7 @@
  * Redistributions of files must retain the copyright notice below.
  *
  * @category ThirdParty
+ * @package  Vkontakte
  * @author   Kanstantsin A Kamkou (2ka.by)
  * @license  http://www.opensource.org/licenses/mit-license.php The MIT License
  * @link     https://github.com/kkamkou/ZF-Vkontakte-SDK
@@ -29,19 +30,19 @@
 *   2. $vkApi->authorize($_GET['code']);
 *   3. $vkApi->VK_FUNCTION
 */
-class Vkontakte_Api
+
+namespace vkontakte;
+
+require_once 'Storage/Interface.php';
+require_once 'Storage/Session.php';
+
+class Api
 {
     /**
     * Default information
     * @var array
     */
     protected $_config = array();
-
-    /**
-    * Storage object
-    * @var Zend_Session_Namespace
-    */
-    protected $_session;
 
     /**
     * Object for the http client
@@ -56,14 +57,31 @@ class Vkontakte_Api
     protected $_errorMessage;
 
     /**
+    * Stores access scope
+    * @link http://tinyurl.com/bm5htmu
+    * @var array
+    */
+    protected $_scope = array('offline');
+
+    /**
+    * Stores object for the storage engine
+    * @var Vkontakte_Storage_Interface
+    */
+    private $_storageObject;
+
+    /**
     * Constructor
     *
     * @param  string $vkId  app id
     * @param  string $vkKey security key
+    * @param  mixed  $scope (Default: null)
     * @return void
     */
-    public function __construct($vkId, $vkKey)
+    public function __construct($vkId, $vkKey, $scope = null)
     {
+        // access rules
+        $this->_scope = (array)$scope;
+
         // default config
         $this->_config = array(
             'urlAccessToken'  => 'https://api.vk.com/oauth/access_token',
@@ -73,12 +91,8 @@ class Vkontakte_Api
             'client_secret'   => $vkKey
         );
 
-        // default data storage
-        $this->_session = new Zend_Session_Namespace(__CLASS__, true);
-        $this->_session->setExpirationSeconds(10800); // 3 hours
-
         // http client
-        $this->_httpClient = new Zend_Http_Client();
+        $this->_httpClient = new \Zend_Http_Client();
         $this->_httpClient->setConfig(
             array(
                 'storeresponse'   => true,
@@ -90,19 +104,51 @@ class Vkontakte_Api
     }
 
     /**
+    * Returns object for the HTTP client
+    *
+    * @return Zend_Http_Client
+    */
+    public function getClient()
+    {
+        return $this->_httpClient;
+    }
+
+    /**
+    * Singleton instance of the storage object
+    *
+    * @return Vkontakte_Storage_Interface
+    */
+    public function getStorage()
+    {
+        if (!$this->_storageObject) {
+            $this->_storageObject = new storage\Session();
+        }
+        return $this->_storageObject;
+    }
+
+    /**
+    * Resets default storage engine
+    *
+    * @return Vkontakte_Storage_Interface
+    */
+    public function setStorage(Vkontakte_Storage_Interface $storage)
+    {
+        $this->_storageObject = $storage;
+        return $this;
+    }
+
+    /**
     * Returns authorize link (login or access form)
     *
     * @param  string $redirectUri full-path for the redirect page, includes http(s)
-    * @param  array  $access (Default: null)
-    * @link   http://tinyurl.com/bm5htmu
     * @return string
     */
-    public function getAuthUri($redirectUri, $access = null)
+    public function getAuthUri($redirectUri)
     {
         // authorize link
         return $this->_uriBuild(
             $this->_config['urlAuthorize'], array(
-                'scope'         => implode(',', (array)$access),
+                'scope'         => implode(',', $this->_scope),
                 'display'       => 'popup',
                 'redirect_uri'  => $redirectUri,
                 'response_type' => 'code'
@@ -123,15 +169,6 @@ class Vkontakte_Api
             return true;
         }
 
-        // should we get code from a session? (do we need this code?)
-        if (null === $code) {
-            $code = $this->_session->code;
-            if (empty($code)) {
-                $this->_errorMessage = 'authorize requires "$code" to be specified';
-                return false;
-            }
-        }
-
         // auth uri
         $uri = $this->_uriBuild(
             $this->_config['urlAccessToken'], array(
@@ -144,16 +181,15 @@ class Vkontakte_Api
         // making request
         try {
             $response = $this->_request($uri);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->_errorMessage = $e->getMessage();
             return false;
         }
 
         // so, we have oAuth information, lets store it
-        $this->_session->userId = $response->user_id;
-        $this->_session->expiresIn = $response->expires_in;
-        $this->_session->accessToken = $response->access_token;
-        $this->_session->code = $code;
+        $this->getStorage()->setUserId($response->user_id);
+        $this->getStorage()->setExpiresIn($response->expires_in);
+        $this->getStorage()->setAccessToken($response->access_token);
 
         return true;
     }
@@ -165,7 +201,7 @@ class Vkontakte_Api
     */
     public function getUid()
     {
-        return $this->_session->userId;
+        return $this->getStorage()->getUserId();
     }
 
     /**
@@ -175,7 +211,7 @@ class Vkontakte_Api
     */
     public function getAccessToken()
     {
-        return $this->_session->accessToken;
+        return $this->getStorage()->getAccessToken();
     }
 
     /**
@@ -185,11 +221,11 @@ class Vkontakte_Api
     */
     public function getExpiresIn()
     {
-        return $this->_session->expiresIn;
+        return $this->getStorage()->getExpiresIn();
     }
 
     /**
-    * Returns message with error description
+    * Returns message with the error description
     *
     * @return string
     */
@@ -199,7 +235,7 @@ class Vkontakte_Api
     }
 
     /**
-    * Calls method
+    * Calls specified method
     *
     * @param  string $method
     * @param  array  $params (Default: array)
@@ -218,7 +254,7 @@ class Vkontakte_Api
 
         // do we have access token?
         if (!isset($params['access_token'])) {
-            throw new Exception(
+            throw new \InvalidArgumentException(
                 'No "access_token" found. Get uri first, then authorize.'
             );
         }
@@ -265,28 +301,28 @@ class Vkontakte_Api
         // lets send request and check what we have
         try {
             $response = $request->request();
-        } catch (Zend_Http_Client_Adapter_Exception $e) {
+        } catch (\Zend_Http_Client_Exception $e) {
             throw new Exception('Client request was unsuccessful', $e->getCode(), $e);
         }
 
         if (!$response->isSuccessful()) {
-            throw new Exception(
+            throw new \Exception(
                 "Request failed({$response->getStatus()}): {$response->getMessage()} at " .
                     $request->getLastRequest()
             );
         }
 
         // response has JSON format, we should decode it
-        $decoded = Zend_Json::decode($response->getBody(), Zend_Json::TYPE_OBJECT);
+        $decoded = \Zend_Json::decode($response->getBody(), \Zend_Json::TYPE_OBJECT);
         if ($decoded === null) {
-            throw new Exception(
+            throw new \UnexpectedValueException(
                 'Response is not JSON: ' . $response->getBody()
             );
         }
 
         // do we have something interesting?
         if (isset($decoded->error)) {
-            throw new Exception(
+            throw new \Exception(
                 "Response contains error({$decoded->error->error_code}): " .
                 $decoded->error->error_msg
             );
