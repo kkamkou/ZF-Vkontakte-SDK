@@ -13,13 +13,13 @@
 namespace vkontakte\storage;
 
 /**
-* @see Vkontakte_Storage_Interface
+* @see StorageInterface
 */
 class Session implements StorageInterface
 {
     /**
     * Storage object
-    * @var Zend_Session_Namespace
+    * @var \Zend_Session_Namespace
     */
     protected $_session;
 
