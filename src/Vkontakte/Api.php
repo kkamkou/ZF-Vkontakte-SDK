@@ -254,7 +254,7 @@ class Vkontakte_Api
     *
     * @param  string $uri
     * @return stdClass
-    * @throws Cddiski_Exception when result was unsuccessful
+    * @throws Exception when result was unsuccessful
     */
     protected function _request($uri)
     {
@@ -263,7 +263,12 @@ class Vkontakte_Api
             ->setUri($uri);
 
         // lets send request and check what we have
-        $response = $request->request();
+        try {
+            $response = $request->request();
+        } catch (Zend_Http_Client_Adapter_Exception $e) {
+            throw new Exception('Client request was unsuccessful', $e->getCode(), $e);
+        }
+
         if (!$response->isSuccessful()) {
             throw new Exception(
                 "Request failed({$response->getStatus()}): {$response->getMessage()} at " .
