@@ -287,12 +287,7 @@ class Vkontakte_Api
             );
         }
 
-        // answer located in the response object
-        if (!isset($decoded->response)) {
-            throw new Exception('No "response" object found. String is: ' . $decoded);
-        }
-
-        return $decoded->response;
+        return $decoded;
     }
 
     /**
