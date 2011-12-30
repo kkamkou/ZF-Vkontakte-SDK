@@ -10,32 +10,15 @@
  * @link     https://github.com/kkamkou/ZF-Vkontakte-SDK
  */
 
-/**
-* Api for the vkontakte.ru, that uses Zend Framework
-*
-* @example
-*   $vkApi = new Vkontakte_Api(ID, KEY);
-*   if (!$vkApi->getUid()) {
-*       if (empty($_GET['code'])) {
-*           echo $vkApi->getAuthUri('http://mysite.com/', array('offline'));
-*       } else {
-*           $vkApi->authorize($_GET['code']);
-*       }
-*   } else {
-*       var_dump($vkApi->getProfiles(array('uids' => $vkApi->getUid()))); // stdClass here!
-*   }
-*
-* Steps:
-*   1. $vkApi->getAuthUri('http://mysite.com/vk/', array('offline'));
-*   2. $vkApi->authorize($_GET['code']);
-*   3. $vkApi->VK_FUNCTION
-*/
-
 namespace vkontakte;
 
 require_once 'Storage/Interface.php';
 require_once 'Storage/Session.php';
 
+/**
+* Api for the vkontakte.ru, that uses Zend Framework
+* @see https://github.com/kkamkou/ZF-Vkontakte-SDK/wiki
+*/
 class Api
 {
     /**
@@ -46,12 +29,12 @@ class Api
 
     /**
     * Object for the http client
-    * @var Zend_Http_Client
+    * @var \Zend_Http_Client
     */
     protected $_httpClient;
 
     /**
-    * Holds last error message
+    * Holds message with the latest error description
     * @var string
     */
     protected $_errorMessage;
@@ -65,7 +48,7 @@ class Api
 
     /**
     * Stores object for the storage engine
-    * @var Vkontakte_Storage_Interface
+    * @var \vkontakte\storage\StorageInterface
     */
     private $_storageObject;
 
@@ -106,7 +89,7 @@ class Api
     /**
     * Returns object for the HTTP client
     *
-    * @return Zend_Http_Client
+    * @return \Zend_Http_Client
     */
     public function getClient()
     {
@@ -114,9 +97,9 @@ class Api
     }
 
     /**
-    * Singleton instance of the storage object
+    * Singleton instance for the storage object
     *
-    * @return Vkontakte_Storage_Interface
+    * @return \vkontakte\storage\StorageInterface
     */
     public function getStorage()
     {
@@ -129,7 +112,7 @@ class Api
     /**
     * Resets default storage engine
     *
-    * @return Vkontakte_Storage_Interface
+    * @return \vkontakte\Api
     */
     public function setStorage(Vkontakte_Storage_Interface $storage)
     {
@@ -164,7 +147,7 @@ class Api
     */
     public function authorize($code = null)
     {
-        // if there is already a user id, it is authorised
+        // if there is already a user id, he is authorised
         if ($this->getUid()) {
             return true;
         }
@@ -186,7 +169,7 @@ class Api
             return false;
         }
 
-        // so, we have oAuth information, lets store it
+        // so, we have oAuth information, let's store it
         $this->getStorage()->setUserId($response->user_id);
         $this->getStorage()->setExpiresIn($response->expires_in);
         $this->getStorage()->setAccessToken($response->access_token);
@@ -195,7 +178,7 @@ class Api
     }
 
     /**
-    * Returns id of a user
+    * Returns id of the user
     *
     * @return int
     */
@@ -239,7 +222,7 @@ class Api
     *
     * @param  string $method
     * @param  array  $params (Default: array)
-    * @throws Exception if no access_token found
+    * @throws \Exception if no access_token found
     * @return stdClass
     */
     public function call($method, array $params = array())
@@ -277,7 +260,7 @@ class Api
     */
     public function __call($name, $arguments)
     {
-        // we should normalize name of function
+        // we should normalize the name of the function
         if (isset($arguments[1])) {
             $name = strtolower($arguments[1]) . '.' . $name;
         }
@@ -286,11 +269,11 @@ class Api
     }
 
     /**
-    * Makes request and checks result according uri
+    * Makes request and checks the result according uri
     *
     * @param  string $uri
     * @return stdClass
-    * @throws Exception when result was unsuccessful
+    * @throws \Exception when the result was unsuccessful
     */
     protected function _request($uri)
     {
@@ -298,11 +281,11 @@ class Api
         $request = $this->_httpClient->resetParameters(true)
             ->setUri($uri);
 
-        // lets send request and check what we have
+        // let's send request and check what we have
         try {
             $response = $request->request();
         } catch (\Zend_Http_Client_Exception $e) {
-            throw new Exception('Client request was unsuccessful', $e->getCode(), $e);
+            throw new \Exception('Client request was unsuccessful', $e->getCode(), $e);
         }
 
         if (!$response->isSuccessful()) {
@@ -312,7 +295,7 @@ class Api
             );
         }
 
-        // response has JSON format, we should decode it
+        // the response has JSON format, we should decode it
         $decoded = \Zend_Json::decode($response->getBody(), \Zend_Json::TYPE_OBJECT);
         if ($decoded === null) {
             throw new \UnexpectedValueException(

@@ -29,11 +29,6 @@ class Session implements StorageInterface
     */
     protected $_expiration = 10800; // 3 hours
 
-    /**
-    * Constructor
-    *
-    * @return void
-    */
     public function __construct()
     {
         $this->_session = new \Zend_Session_Namespace(__CLASS__, true);
