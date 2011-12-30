@@ -114,7 +114,7 @@ class Api
     *
     * @return \vkontakte\Api
     */
-    public function setStorage(Vkontakte_Storage_Interface $storage)
+    public function setStorage(storage\StorageInterface $storage)
     {
         $this->_storageObject = $storage;
         return $this;
