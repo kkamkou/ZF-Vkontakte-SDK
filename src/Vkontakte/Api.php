@@ -44,7 +44,7 @@ class Api
     * @link http://tinyurl.com/bm5htmu
     * @var array
     */
-    protected $_scope = array('offline');
+    protected $_scope;
 
     /**
     * Stores object for the storage engine
