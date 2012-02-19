@@ -31,8 +31,11 @@ class MyProject_Social_Vkontakte extends \Vkontakte\Api
         // the config object
         $config = Zend_Registry::get('config')->social->vk;
 
+        // auth uri
+        $urn = MyProject_Utils_Client::getUrl() . u(array(), 'vkontakte', true);
+
         // parent one
-        parent::__construct($config->id, $config->key, 'offline');
+        parent::__construct($config->id, $config->key, $uri, 'offline');
     }
 
     /**

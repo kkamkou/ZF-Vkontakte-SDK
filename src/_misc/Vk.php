@@ -46,12 +46,7 @@ class Application_View_Helper_Vk
         // the api object
         $api = MyProject_Social_Vkontakte::getInstance();
 
-        // have we id?
-        if ($api->getUid()) {
-            return $urn;
-        }
-
-        // url with auth
-        return $api->getAuthUri(MyProject_Utils_Client::getUrl() . $urn);
+        // auth urn
+        return $api->getUid() ? $urn : $api->getAuthUri($urn);
     }
 }

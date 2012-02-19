@@ -48,7 +48,7 @@ class Api
 
     /**
     * Stores object for the storage engine
-    * @var \Vkontakte\Storage\StorageInterface
+    * @var Storage\StorageInterface
     */
     private $_storageObject;
 
@@ -57,9 +57,10 @@ class Api
     *
     * @param  string $vkId  app id
     * @param  string $vkKey security key
+    * @param  string $urlAuth auth uri
     * @param  mixed  $scope (Default: null)
     */
-    public function __construct($vkId, $vkKey, $scope = null)
+    public function __construct($vkId, $vkKey, $urlAuth, $scope = null)
     {
         // access rules
         $this->_scope = (array)$scope;
@@ -69,6 +70,7 @@ class Api
             'urlAccessToken'  => 'https://api.vk.com/oauth/access_token',
             'urlAuthorize'    => 'https://api.vk.com/oauth/authorize',
             'urlMethod'       => 'https://api.vk.com/method',
+            'urlAuth'         => $urlAuth,
             'client_id'       => $vkId,
             'client_secret'   => $vkKey
         );
@@ -98,7 +100,7 @@ class Api
     /**
     * Singleton instance for the storage object
     *
-    * @return \Vkontakte\Storage\StorageInterface
+    * @return Storage\StorageInterface
     */
     public function getStorage()
     {
@@ -109,10 +111,11 @@ class Api
     }
 
     /**
-    * Resets default storage engine
-    *
-    * @return \Vkontakte\Api
-    */
+     * Resets default storage engine
+     *
+     * @param  Storage\StorageInterface $storage
+     * @return Api
+     */
     public function setStorage(Storage\StorageInterface $storage)
     {
         $this->_storageObject = $storage;
@@ -132,7 +135,7 @@ class Api
             $this->_config['urlAuthorize'], array(
                 'scope'         => implode(',', $this->_scope),
                 'display'       => 'popup',
-                'redirect_uri'  => $redirectUri,
+                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri),
                 'response_type' => 'code'
             )
         );
@@ -342,5 +345,23 @@ class Api
 
         // creating full address
         return $uri . '?' . ltrim($uriParams, '&');
+    }
+
+    /**
+     * Returns redirect uri
+     *
+     * @param  string $uri
+     * @return string
+     */
+    protected function _uriBuildRedirect($uri)
+    {
+        // default symbol
+        $symbol = '&';
+        if (strpos($this->_config['urlAuth'], '?') === false) {
+            $symbol = '?';
+        }
+
+        // redirect uri
+        return $this->_config['urlAuth'] . $symbol . 'forward=' . urlencode($uri);
     }
 }
