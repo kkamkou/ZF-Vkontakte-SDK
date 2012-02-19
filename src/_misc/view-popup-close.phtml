@@ -1,0 +1,16 @@
+<html>
+    <head>
+        <title>Close me</title>
+    </head>
+    <body>
+        <a href="#" onclick="popupForward();">Close me</a>
+    </body>
+</html>
+
+<script type="text/javascript">
+    function popupForward() {
+        <?if ($this->urn):?>opener.location.href = '<?=$this->urn?>';<?endif?>
+        window.close();
+    }
+    popupForward();
+</script>
