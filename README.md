@@ -3,10 +3,18 @@
 ## Auth
 ```php
 <?php
+// the api object
 $api = MyProject_Social_Vkontakte::getInstance();
-if (isset($_GET['code'])) {
-    $api->authorize($_GET['code']);
+
+// we have an error, just closing
+if (is_null($this->getParam('error'))) {
+    if ($api->authorize($this->getParam('code'))) {
+        return $this->_exit($this->getParam('forward'));
+    }
 }
+
+// let's close popup and redirect
+return $this->_exit();
 ```
 
 ## Controller
