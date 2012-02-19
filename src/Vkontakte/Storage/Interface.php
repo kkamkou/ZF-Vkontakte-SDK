@@ -10,7 +10,7 @@
  * @link     https://github.com/kkamkou/ZF-Vkontakte-SDK
  */
 
-namespace vkontakte\storage;
+namespace Vkontakte\Storage;
 
 interface StorageInterface
 {

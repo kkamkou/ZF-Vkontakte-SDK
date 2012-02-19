@@ -10,13 +10,13 @@
  * @link     https://github.com/kkamkou/ZF-Vkontakte-SDK
  */
 
-namespace vkontakte;
+namespace Vkontakte;
 
 require_once 'Storage/Interface.php';
 require_once 'Storage/Session.php';
 
 /**
-* Api for the vkontakte.ru, that uses Zend Framework
+* Api for the vk.com, that uses Zend Framework
 * @see https://github.com/kkamkou/ZF-Vkontakte-SDK/wiki
 */
 class Api
@@ -48,7 +48,7 @@ class Api
 
     /**
     * Stores object for the storage engine
-    * @var \vkontakte\storage\StorageInterface
+    * @var \Vkontakte\Storage\StorageInterface
     */
     private $_storageObject;
 
@@ -58,7 +58,6 @@ class Api
     * @param  string $vkId  app id
     * @param  string $vkKey security key
     * @param  mixed  $scope (Default: null)
-    * @return void
     */
     public function __construct($vkId, $vkKey, $scope = null)
     {
@@ -99,12 +98,12 @@ class Api
     /**
     * Singleton instance for the storage object
     *
-    * @return \vkontakte\storage\StorageInterface
+    * @return \Vkontakte\Storage\StorageInterface
     */
     public function getStorage()
     {
         if (!$this->_storageObject) {
-            $this->_storageObject = new storage\Session();
+            $this->_storageObject = new Storage\Session();
         }
         return $this->_storageObject;
     }
@@ -112,9 +111,9 @@ class Api
     /**
     * Resets default storage engine
     *
-    * @return \vkontakte\Api
+    * @return \Vkontakte\Api
     */
-    public function setStorage(storage\StorageInterface $storage)
+    public function setStorage(Storage\StorageInterface $storage)
     {
         $this->_storageObject = $storage;
         return $this;
@@ -318,7 +317,7 @@ class Api
     * Creates uri according specified parameters
     *
     * @param  string $uri
-    * @param  string $params (Default: array)
+    * @param  array  $params (Default: array)
     * @return string
     */
     protected function _uriBuild($uri, array $params = array())

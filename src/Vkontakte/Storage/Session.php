@@ -10,7 +10,7 @@
  * @link     https://github.com/kkamkou/ZF-Vkontakte-SDK
  */
 
-namespace vkontakte\storage;
+namespace Vkontakte\Storage;
 
 /**
 * @see StorageInterface
@@ -29,37 +29,70 @@ class Session implements StorageInterface
     */
     protected $_expiration = 10800; // 3 hours
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
-        $this->_session = new \Zend_Session_Namespace(__CLASS__, true);
+        $this->_session = new \Zend_Session_Namespace(__CLASS__);
         $this->_session->setExpirationSeconds($this->_expiration); // 3 hours
     }
 
+    /**
+     * Returns the user id
+     *
+     * @return int
+     */
     public function getUserId()
     {
         return $this->_session->userId;
     }
 
+    /**
+     * Returns seconds before vk de-auth you
+     *
+     * @return int
+     */
     public function getExpiresIn()
     {
         return $this->_session->expiresIn;
     }
 
+    /**
+     * Returns the access token
+     *
+     * @return string
+     */
     public function getAccessToken()
     {
         return $this->_session->accessToken;
     }
 
+    /**
+     * Sets the current user id
+     *
+     * @param int $uid
+     */
     public function setUserId($uid)
     {
         $this->_session->userId = $uid;
     }
 
+    /**
+     * Sets time of the token expiration
+     *
+     * @param int $expires
+     */
     public function setExpiresIn($expires)
     {
         $this->_session->expiresIn = $expires;
     }
 
+    /**
+     * Sets the access token
+     *
+     * @param string $token
+     */
     public function setAccessToken($token)
     {
         $this->_session->accessToken = $token;
