@@ -23,6 +23,17 @@ $attrs = array(
 
 // user profile
 var_dump($api->getProfiles($attrs));
+
+// notes.add
+$response = $api->add(
+    array(
+        'title' => 'Buy milk',
+        'text' => 'Otherwise she kills me :(',
+        'privacy' => 2
+    ), 'notes'
+);
+
+var_dump($response);
 ```
 
 ## Template
