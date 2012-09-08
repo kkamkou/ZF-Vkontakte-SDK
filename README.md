@@ -6,15 +6,8 @@
 // the api object
 $api = MyProject_Social_Vkontakte::getInstance();
 
-// we have an error, just closing
-if (is_null($this->getParam('error'))) {
-    if ($api->authorize($this->getParam('code'))) {
-        return $this->_exit($this->getParam('forward'));
-    }
-}
-
-// let's close popup and redirect
-return $this->_exit();
+// see the "_misc" folder
+$api->authorize($code);
 ```
 
 ## Controller
@@ -30,6 +23,17 @@ $attrs = array(
 
 // user profile
 var_dump($api->getProfiles($attrs));
+
+// notes.add
+$response = $api->add(
+    array(
+        'title' => 'Buy milk',
+        'text' => 'Otherwise she kills me :(',
+        'privacy' => 2
+    ), 'notes'
+);
+
+var_dump($response);
 ```
 
 ## Template
