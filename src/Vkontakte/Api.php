@@ -53,6 +53,12 @@ class Api
     private $_storageObject;
 
     /**
+     * Stores redirect url
+     * @var string
+     */
+    private $_redirectUrl;
+
+    /**
     * Constructor
     *
     * @param  string $vkId  app id
@@ -77,14 +83,12 @@ class Api
 
         // http client
         $this->_httpClient = new \Zend_Http_Client();
-        $this->_httpClient->setConfig(
-            array(
-                'storeResponse'   => true,
-                'strictRedirects' => true,
-                'timeout'         => 10,
-                'userAgent'       => 'ZF-Vkontakte-SDK'
-            )
-        );
+        $this->_httpClient->setConfig(array(
+            'storeResponse'   => true,
+            'strictRedirects' => true,
+            'timeout'         => 10,
+            'userAgent'       => 'ZF-Vkontakte-SDK'
+        ));
     }
 
     /**
@@ -100,13 +104,24 @@ class Api
     }
 
     /**
+     * Sets redirect url
+     *
+     * @param string $url full-path for the redirect page, includes http(s)
+     * @return Api
+     */
+    public function setRedirectUrl($url)
+    {
+        $this->_redirectUrl = $url;
+        return $this;
+    }
+
+    /**
     * Authorizes user if needed
     *
     * @param  string $code (Default: null)
-    * @param  string $redirectUri full-path for the redirect page, includes http(s)
     * @return bool
     */
-    public function authorize($code = null, $redirectUri)
+    public function authorize($code = null)
     {
         // if there is already a user id, he is authorised
         if ($this->getUid()) {
@@ -118,7 +133,7 @@ class Api
             $this->_config['urlAccessToken'], array(
                 'client_secret' => $this->_config['client_secret'],
                 'code'          => $code,
-                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri)
+                'redirect_uri'  => $this->_uriBuildRedirect($this->getRedirectUrl())
             )
         );
 
@@ -136,6 +151,28 @@ class Api
         $this->getStorage()->setAccessToken($response->access_token);
 
         return true;
+    }
+
+    /**
+     * Returns redirect url
+     *
+     * @return string
+     */
+    public function getRedirectUrl()
+    {
+        return $this->_redirectUrl;
+    }
+
+    /**
+     * Returns hash for the storage engine
+     *
+     * @return string
+     */
+    public function getStorageId()
+    {
+        return hash(
+            'crc32', implode(',', $this->getScope()) . $this->getRedirectUrl()
+        );
     }
 
     /**
@@ -166,7 +203,7 @@ class Api
     public function getStorage()
     {
         if (!$this->_storageObject) {
-            $this->setStorage(new Storage\Session($this->getScope()));
+            $this->setStorage(new Storage\Session($this->getStorageId()));
         }
         return $this->_storageObject;
     }
@@ -174,17 +211,16 @@ class Api
     /**
      * Returns authorize link (login or access form)
      *
-     * @param  string $redirectUri full-path for the redirect page, includes http(s)
      * @return string
      */
-    public function getAuthUri($redirectUri)
+    public function getAuthUri()
     {
         // authorize link
         return $this->_uriBuild(
             $this->_config['urlAuthorize'], array(
                 'scope'         => implode(',', $this->_scope),
                 'display'       => 'popup',
-                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri)
+                'redirect_uri'  => $this->_uriBuildRedirect($this->getRedirectUrl())
             )
         );
     }

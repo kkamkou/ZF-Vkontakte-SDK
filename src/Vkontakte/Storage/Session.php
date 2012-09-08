@@ -32,15 +32,12 @@ class Session implements StorageInterface
     /**
      * Constructor
      *
-     * @param array $scope
+     * @param string $sessionId
      */
-    public function __construct(array $scope)
+    public function __construct($sessionId)
     {
-        // the session id
-        $sessionId = __CLASS__ . hash('crc32', implode(',', $scope));
-
         // session storage
-        $this->_session = new \Zend_Session_Namespace($sessionId);
+        $this->_session = new \Zend_Session_Namespace(__CLASS__ . $sessionId);
         $this->_session->setExpirationSeconds($this->_expiration); // 3 hours
     }
 
