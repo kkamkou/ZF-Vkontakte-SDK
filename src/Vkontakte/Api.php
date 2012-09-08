@@ -358,7 +358,10 @@ class Api
         $uri = rtrim($uri, '/');
 
         // default params
-        $params += array('client_id' => $this->_config['client_id'], 'format' => 'json');
+        $params += array(
+            'client_id' => $this->_config['client_id'],
+            'format' => 'json'
+        );
 
         // sorting
         ksort($params);
