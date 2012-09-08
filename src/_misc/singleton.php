@@ -19,7 +19,7 @@ class MyProject_Social_Vkontakte extends \Vkontakte\Api
 {
     /**
      * Stores api for the vk.com
-     * @var \Vkontakte\Api
+     * @var MyProject_Social_Vkontakte
      */
     static protected $_instance;
 
@@ -35,7 +35,7 @@ class MyProject_Social_Vkontakte extends \Vkontakte\Api
         $urn = MyProject_Utils_Client::getUrl() . u(array(), 'vkontakte', true);
 
         // parent one
-        parent::__construct($config->id, $config->key, $uri, 'offline');
+        parent::__construct($config->id, $config->key, $urn, 'offline');
     }
 
     /**

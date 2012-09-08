@@ -67,8 +67,8 @@ class Api
 
         // default config
         $this->_config = array(
-            'urlAccessToken'  => 'https://api.vk.com/oauth/access_token',
-            'urlAuthorize'    => 'https://api.vk.com/oauth/authorize',
+            'urlAccessToken'  => 'https://oauth.vk.com/access_token',
+            'urlAuthorize'    => 'https://oauth.vk.com/authorize',
             'urlMethod'       => 'https://api.vk.com/method',
             'urlAuth'         => $urlAuth,
             'client_id'       => $vkId,
@@ -158,6 +158,7 @@ class Api
         $uri = $this->_uriBuild(
             $this->_config['urlAccessToken'], array(
                 'client_secret' => $this->_config['client_secret'],
+                'grant_type'    => 'client_credentials',
                 'display'       => 'popup',
                 'code'          => $code
             )
