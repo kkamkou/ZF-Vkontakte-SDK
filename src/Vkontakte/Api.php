@@ -218,7 +218,7 @@ class Api
         // authorize link
         return $this->_uriBuild(
             $this->_config['urlAuthorize'], array(
-                'scope'         => implode(',', $this->_scope),
+                'scope'         => implode(',', $this->getScope()),
                 'display'       => 'popup',
                 'redirect_uri'  => $this->_uriBuildRedirect($this->getRedirectUrl())
             )
