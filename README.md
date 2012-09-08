@@ -20,7 +20,7 @@ $api = new \Vkontakte\Api(
 ```php
 <?php
 // the api object
-$api = Cddiski_Social_Vkontakte::getInstance();
+$api = MyProject_Social_Vkontakte::getInstance();
 
 // we haven't error, closing and forward
 if (!$this->hasParam('error')) {
