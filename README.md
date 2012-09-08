@@ -4,10 +4,9 @@
 ```php
 <?php
 // the api object
-$api = MyProject_Social_Vkontakte::getInstance();
-
-// see the "_misc" folder
-$api->authorize($code);
+$api = MyProject_Social_Vkontakte::getInstance()
+    ->setRedirectUrl('http://test.com/vk/');
+    ->authorize($_GET['code']);
 ```
 
 ## Controller
