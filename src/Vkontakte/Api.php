@@ -58,9 +58,9 @@ class Api
     * @param  string $vkId  app id
     * @param  string $vkKey security key
     * @param  string $urlAuth auth uri
-    * @param  mixed  $scope (Default: null)
+    * @param  mixed  $scope
     */
-    public function __construct($vkId, $vkKey, $urlAuth, $scope = null)
+    public function __construct($vkId, $vkKey, $urlAuth, $scope)
     {
         // access rules
         $this->_scope = (array)$scope;
@@ -69,7 +69,7 @@ class Api
         $this->_config = array(
             'urlAccessToken'  => 'https://oauth.vk.com/access_token',
             'urlAuthorize'    => 'https://oauth.vk.com/authorize',
-            'urlMethod'       => 'https://api.vk.com/method',
+            'urlApi'          => 'https://api.vk.com/api.php',
             'urlAuth'         => $urlAuth,
             'client_id'       => $vkId,
             'client_secret'   => $vkKey
@@ -79,35 +79,12 @@ class Api
         $this->_httpClient = new \Zend_Http_Client();
         $this->_httpClient->setConfig(
             array(
-                'storeresponse'   => true,
-                'strictredirects' => true,
+                'storeResponse'   => true,
+                'strictRedirects' => true,
                 'timeout'         => 10,
-                'useragent'       => 'ZF-Vkontakte-SDK'
+                'userAgent'       => 'ZF-Vkontakte-SDK'
             )
         );
-    }
-
-    /**
-    * Returns object for the HTTP client
-    *
-    * @return \Zend_Http_Client
-    */
-    public function getClient()
-    {
-        return $this->_httpClient;
-    }
-
-    /**
-    * Singleton instance for the storage object
-    *
-    * @return Storage\StorageInterface
-    */
-    public function getStorage()
-    {
-        if (!$this->_storageObject) {
-            $this->_storageObject = new Storage\Session();
-        }
-        return $this->_storageObject;
     }
 
     /**
@@ -123,31 +100,13 @@ class Api
     }
 
     /**
-    * Returns authorize link (login or access form)
-    *
-    * @param  string $redirectUri full-path for the redirect page, includes http(s)
-    * @return string
-    */
-    public function getAuthUri($redirectUri)
-    {
-        // authorize link
-        return $this->_uriBuild(
-            $this->_config['urlAuthorize'], array(
-                'scope'         => implode(',', $this->_scope),
-                'display'       => 'popup',
-                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri),
-                'response_type' => 'code'
-            )
-        );
-    }
-
-    /**
     * Authorizes user if needed
     *
     * @param  string $code (Default: null)
+    * @param  string $redirectUri full-path for the redirect page, includes http(s)
     * @return bool
     */
-    public function authorize($code = null)
+    public function authorize($code = null, $redirectUri)
     {
         // if there is already a user id, he is authorised
         if ($this->getUid()) {
@@ -158,9 +117,8 @@ class Api
         $uri = $this->_uriBuild(
             $this->_config['urlAccessToken'], array(
                 'client_secret' => $this->_config['client_secret'],
-                'grant_type'    => 'client_credentials',
-                'display'       => 'popup',
-                'code'          => $code
+                'code'          => $code,
+                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri)
             )
         );
 
@@ -178,6 +136,57 @@ class Api
         $this->getStorage()->setAccessToken($response->access_token);
 
         return true;
+    }
+
+    /**
+     * Returns object for the HTTP client
+     *
+     * @return \Zend_Http_Client
+     */
+    public function getClient()
+    {
+        return $this->_httpClient;
+    }
+
+    /**
+     * Returns scope set
+     *
+     * @return array
+     */
+    public function getScope()
+    {
+        return $this->_scope;
+    }
+
+    /**
+     * Singleton instance for the storage object
+     *
+     * @return Storage\StorageInterface
+     */
+    public function getStorage()
+    {
+        if (!$this->_storageObject) {
+            $this->setStorage(new Storage\Session($this->getScope()));
+        }
+        return $this->_storageObject;
+    }
+
+    /**
+     * Returns authorize link (login or access form)
+     *
+     * @param  string $redirectUri full-path for the redirect page, includes http(s)
+     * @return string
+     */
+    public function getAuthUri($redirectUri)
+    {
+        // authorize link
+        return $this->_uriBuild(
+            $this->_config['urlAuthorize'], array(
+                'scope'         => implode(',', $this->_scope),
+                'display'       => 'popup',
+                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri)
+            )
+        );
     }
 
     /**
@@ -225,7 +234,7 @@ class Api
     *
     * @param  string $method
     * @param  array  $params (Default: array)
-    * @throws \Exception if no access_token found
+    * @throws \InvalidArgumentException if no access_token found
     * @return stdClass
     */
     public function call($method, array $params = array())
@@ -233,42 +242,23 @@ class Api
         // we should reset the error holder first
         $this->_errorMessage = null;
 
-        // default set of parameters
-        if (!isset($params['access_token'])) {
-            $params['access_token'] = $this->getAccessToken();
-        }
+        // params injection
+        $params += array(
+            'method' => $method,
+            'access_token' => $this->getAccessToken()
+        );
 
         // do we have access token?
-        if (!isset($params['access_token'])) {
+        if (empty($params['access_token'])) {
             throw new \InvalidArgumentException(
                 'No "access_token" found. Get uri first, then authorize.'
             );
         }
 
-        // auth uri
-        $uri = $this->_uriBuild(
-            $this->_config['urlMethod'] . '/' . $method, $params
-        );
-
         // making request
-        return $this->_request($uri);
-    }
-
-    /**
-    * Quick access to vk functions
-    *
-    * @param  string $name
-    * @param  array  $arguments
-    * @return stdClass
-    */
-    public function __call($name, $arguments)
-    {
-        // we should normalize the name of the function
-        if (isset($arguments[1])) {
-            $name = strtolower($arguments[1]) . '.' . $name;
-        }
-
-        return $this->call($name, $arguments[0]);
+        return $this->_request(
+            $this->_uriBuild($this->_config['urlApi'], $params)
+        );
     }
 
     /**
@@ -277,6 +267,7 @@ class Api
     * @param  string $uri
     * @return stdClass
     * @throws \Exception when the result was unsuccessful
+    * @throws \UnexpectedValueException JSON parsing error
     */
     protected function _request($uri)
     {
@@ -299,8 +290,9 @@ class Api
         }
 
         // the response has JSON format, we should decode it
-        $decoded = \Zend_Json::decode($response->getBody(), \Zend_Json::TYPE_OBJECT);
-        if ($decoded === null) {
+        try {
+            $decoded = \Zend_Json::decode($response->getBody(), \Zend_Json::TYPE_OBJECT);
+        } catch (\Zend_Json_Exception $e) {
             throw new \UnexpectedValueException(
                 'Response is not JSON: ' . $response->getBody()
             );
@@ -330,19 +322,22 @@ class Api
         $uri = rtrim($uri, '/');
 
         // default params
-        if (!isset($params['client_id'])) {
-            $params = array_merge(
-                array('client_id' => $this->_config['client_id']), $params
-            );
-        }
+        $params += array('client_id' => $this->_config['client_id'], 'format' => 'json');
+
+        // sorting
+        ksort($params);
 
         // params append
-        $uriParams = '';
+        $uriParams = $sig = '';
         foreach ($params as $key => $value) {
             if ($value != '') {
                 $uriParams .= "&{$key}=" . urlencode($value);
+                $sig .= $key . '=' . $value;
             }
         }
+
+        // signature param
+        $uriParams .= '&sig=' . md5($sig . $this->_config['client_secret']);
 
         // creating full address
         return $uri . '?' . ltrim($uriParams, '&');
@@ -364,5 +359,22 @@ class Api
 
         // redirect uri
         return $this->_config['urlAuth'] . $symbol . 'forward=' . urlencode($uri);
+    }
+
+    /**
+     * Quick access to vk functions
+     *
+     * @param  string $name
+     * @param  array  $arguments
+     * @return stdClass
+     */
+    public function __call($name, $arguments)
+    {
+        // we should normalize the name of the function
+        if (isset($arguments[1])) {
+            $name = strtolower($arguments[1]) . '.' . $name;
+        }
+
+        return $this->call($name, $arguments[0]);
     }
 }
