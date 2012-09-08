@@ -71,6 +71,9 @@ class Api
         // access rules
         $this->_scope = (array)$scope;
 
+        // redirect url
+        $this->setRedirectUrl($urlAuth);
+
         // default config
         $this->_config = array(
             'urlAccessToken'  => 'https://oauth.vk.com/access_token',
