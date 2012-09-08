@@ -44,10 +44,9 @@ class Application_View_Helper_Vk
     public function uri($urn)
     {
         // the api object
-        $api = MyProject_Social_Vkontakte::getInstance()
-            ->setRedirectUrl($urn);
+        $api = MyProject_Social_Vkontakte::getInstance();
 
         // auth urn
-        return $api->getUid() ? $urn : $api->getAuthUri();
+        return $api->getUid() ? $urn : $api->getAuthUri($urn);
     }
 }
