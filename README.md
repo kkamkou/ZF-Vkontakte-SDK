@@ -1,12 +1,33 @@
 # Examples
 
+## Constructor
+```php
+<?php
+// see: _misc/singleton.php
+
+require_once 'Other/Vkontakte/Api.php';
+
+$config = Zend_Registry::get('config')->vk;
+$authUri = 'http://mysite.com/vk';
+
+$api = new \Vkontakte\Api(
+    $config->id, $config->key, $authUri,
+    array('offline', 'notes', 'wall')
+);
+```
+
 ## Auth
 ```php
 <?php
 // the api object
-$api = MyProject_Social_Vkontakte::getInstance()
-    ->setRedirectUrl('http://test.com/vk/');
-    ->authorize($_GET['code']);
+$api = Cddiski_Social_Vkontakte::getInstance();
+
+// we haven't error, closing and forward
+if (!$this->hasParam('error')) {
+    if ($api->authorize($this->getParam('code'))) {
+        // see: _misc/controller.php
+    }
+}
 ```
 
 ## Controller
