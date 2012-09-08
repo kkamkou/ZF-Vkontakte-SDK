@@ -53,12 +53,6 @@ class Api
     private $_storageObject;
 
     /**
-     * Stores redirect url
-     * @var string
-     */
-    private $_redirectUrl;
-
-    /**
     * Constructor
     *
     * @param  string $vkId  app id
@@ -70,9 +64,6 @@ class Api
     {
         // access rules
         $this->_scope = (array)$scope;
-
-        // redirect url
-        $this->setRedirectUrl($urlAuth);
 
         // default config
         $this->_config = array(
@@ -107,18 +98,6 @@ class Api
     }
 
     /**
-     * Sets redirect url
-     *
-     * @param string $url full-path for the redirect page, includes http(s)
-     * @return Api
-     */
-    public function setRedirectUrl($url)
-    {
-        $this->_redirectUrl = $url;
-        return $this;
-    }
-
-    /**
     * Authorizes user if needed
     *
     * @param  string $code (Default: null)
@@ -135,8 +114,8 @@ class Api
         $uri = $this->_uriBuild(
             $this->_config['urlAccessToken'], array(
                 'client_secret' => $this->_config['client_secret'],
-                'code'          => $code,
-                'redirect_uri'  => $this->_uriBuildRedirect($this->getRedirectUrl())
+                'redirect_uri' => $this->_config['urlAuth'],
+                'code' => $code
             )
         );
 
@@ -157,25 +136,13 @@ class Api
     }
 
     /**
-     * Returns redirect url
-     *
-     * @return string
-     */
-    public function getRedirectUrl()
-    {
-        return $this->_redirectUrl;
-    }
-
-    /**
      * Returns hash for the storage engine
      *
      * @return string
      */
     public function getStorageId()
     {
-        return hash(
-            'crc32', implode(',', $this->getScope()) . $this->getRedirectUrl()
-        );
+        return hash('crc32', implode(',', $this->getScope()));
     }
 
     /**
@@ -214,16 +181,17 @@ class Api
     /**
      * Returns authorize link (login or access form)
      *
+     * @param  string $redirectUri full-path for the redirect page, includes http(s)
      * @return string
      */
-    public function getAuthUri()
+    public function getAuthUri($redirectUri)
     {
         // authorize link
         return $this->_uriBuild(
             $this->_config['urlAuthorize'], array(
                 'scope'         => implode(',', $this->getScope()),
                 'display'       => 'popup',
-                'redirect_uri'  => $this->_uriBuildRedirect($this->getRedirectUrl())
+                'redirect_uri'  => $this->_uriBuildRedirect($redirectUri)
             )
         );
     }
@@ -339,10 +307,14 @@ class Api
 
         // do we have something interesting?
         if (isset($decoded->error)) {
-            throw new \Exception(
-                "Response contains error({$decoded->error->error_code}): " .
-                $decoded->error->error_msg
-            );
+            if (!isset($decoded->error->error_code)) {
+                $this->_errorMessage = $decoded->error;
+            } else {
+                throw new \Exception(
+                    "Response contains error({$decoded->error->error_code}): " .
+                        $decoded->error->error_msg
+                );
+            }
         }
 
         return $decoded;
