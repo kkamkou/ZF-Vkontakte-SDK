@@ -392,7 +392,7 @@ class Api
 
         // call rerouting
         return $this->call(
-            array_shift($parts) . '.' . implode('', $parts),
+            strtolower(array_shift($parts)) . '.' . lcfirst(implode('', $parts)),
             current($arguments)
         );
     }
