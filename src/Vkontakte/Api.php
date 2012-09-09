@@ -385,10 +385,15 @@ class Api
     public function __call($name, $arguments)
     {
         // we should normalize the name of the function
-        if (isset($arguments[1])) {
-            $name = strtolower($arguments[1]) . '.' . $name;
-        }
+        $parts = preg_split(
+            '~([A-Z][a-z]+)~', ucfirst($name), null,
+            PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY
+        );
 
-        return $this->call($name, $arguments[0]);
+        // call rerouting
+        return $this->call(
+            array_shift($parts) . '.' . implode('', $parts),
+            current($arguments)
+        );
     }
 }
