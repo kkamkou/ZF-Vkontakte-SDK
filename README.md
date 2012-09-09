@@ -41,17 +41,18 @@ $attrs = array(
     'fields' => 'country,city,contacts'
 );
 
-// user profile
-var_dump($api->getProfiles($attrs));
+// users.get
+var_dump($api->usersGet($attrs));
+
+// places.getCityById
+var_dump($api->placesGetCityById(array('cids' => 123)));
 
 // notes.add
-$response = $api->add(
-    array(
-        'title' => 'Buy milk',
-        'text' => 'Otherwise she kills me :(',
-        'privacy' => 2
-    ), 'notes'
-);
+$response = $api->notesAdd(array(
+    'title' => 'Buy milk',
+    'text' => 'Otherwise she kills me :(',
+    'privacy' => 2
+));
 
 var_dump($response);
 ```
