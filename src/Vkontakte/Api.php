@@ -15,10 +15,7 @@ namespace Vkontakte;
 require_once 'Storage/Interface.php';
 require_once 'Storage/Session.php';
 
-/**
-* Api for the vk.com, that uses Zend Framework
-* @see https://github.com/kkamkou/ZF-Vkontakte-SDK/wiki
-*/
+/** Api for the vk.com, that uses Zend Framework 1 */
 class Api
 {
     /**
@@ -69,8 +66,9 @@ class Api
         $this->_config = array(
             'urlAccessToken'  => 'https://oauth.vk.com/access_token',
             'urlAuthorize'    => 'https://oauth.vk.com/authorize',
-            'urlApi'          => 'https://api.vk.com/api.php',
+            'urlApi'          => 'https://api.vk.com/method/%s',
             'urlAuth'         => $urlAuth,
+            'apiVersion'      => '5.37',
             'client_id'       => $vkId,
             'client_secret'   => $vkKey
         );
@@ -250,10 +248,7 @@ class Api
         $this->_errorMessage = null;
 
         // params injection
-        $params += array(
-            'method' => $method,
-            'access_token' => $this->getAccessToken()
-        );
+        $params += array('access_token' => $this->getAccessToken());
 
         // do we have access token?
         if (empty($params['access_token'])) {
@@ -264,7 +259,7 @@ class Api
 
         // making request
         return $this->_request(
-            $this->_uriBuild($this->_config['urlApi'], $params)
+            $this->_uriBuild(sprintf($this->_config['urlApi'], $method), $params)
         );
     }
 
