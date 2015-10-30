@@ -330,7 +330,8 @@ class Api
         // default params
         $params += array(
             'client_id' => $this->_config['client_id'],
-            'format' => 'json'
+            'format' => 'json',
+            'v' => $this->_config['apiVersion']
         );
 
         // sorting

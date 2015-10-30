@@ -38,7 +38,7 @@ $api = MyProject_Social_Vkontakte::getInstance();
 
 $attrs = array(
     'user_ids' => $api->getUid(),
-    'fields' => 'country,city,contacts'
+    'fields' => 'country,city,contacts,notes'
 );
 
 // users.get
