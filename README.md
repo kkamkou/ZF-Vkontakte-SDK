@@ -37,7 +37,7 @@ if (!$this->hasParam('error')) {
 $api = MyProject_Social_Vkontakte::getInstance();
 
 $attrs = array(
-    'uids'   => $api->getUid(),
+    'user_ids' => $api->getUid(),
     'fields' => 'country,city,contacts'
 );
 
@@ -45,16 +45,24 @@ $attrs = array(
 var_dump($api->usersGet($attrs));
 
 // places.getCityById
-var_dump($api->placesGetCityById(array('cids' => 123)));
+var_dump($api->databaseGetCitiesById(array('city_ids' => 123)));
 
 // notes.add
 $response = $api->notesAdd(array(
     'title' => 'Buy milk',
-    'text' => 'Otherwise she kills me :(',
-    'privacy' => 2
+    'text' => 'Otherwise she kills me :('
 ));
 
 var_dump($response);
+```
+
+## Method structure
+```
+@see: https://vk.com/dev/methods
+$api->databaseGetCitiesById = database.getCitiesById
+$api->authCheckPhone = auth.checkPhone
+$api->usersGet = users.get
+etc...
 ```
 
 ## Template
