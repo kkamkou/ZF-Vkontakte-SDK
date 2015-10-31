@@ -71,3 +71,5 @@ etc...
 <-- socialLogin class opens popup window -->
 <a href="<?=$this->vk()->uri('/my/link')?>"<?=$this->vk()->uid() ? '' : ' class="socialLogin"'?>>Link</a>
 ```
+## VK Setup
+![](http://2ka.by/tmp/screenshots/2015-10-31-0300ffa.png)
