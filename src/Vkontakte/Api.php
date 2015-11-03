@@ -129,6 +129,9 @@ class Api
         $this->getStorage()->setUserId($response->user_id);
         $this->getStorage()->setExpiresIn($response->expires_in);
         $this->getStorage()->setAccessToken($response->access_token);
+        if (isset($response->email)) {
+            $this->getStorage()->setEmail($response->email);
+        }
 
         return true;
     }

@@ -29,21 +29,15 @@ class Session implements StorageInterface
     */
     protected $_expiration = 10800; // 3 hours
 
-    /**
-     * Constructor
-     *
-     * @param string $sessionId
-     */
+    /** @param string $sessionId */
     public function __construct($sessionId)
     {
-        // session storage
         $this->_session = new \Zend_Session_Namespace(__CLASS__ . $sessionId);
         $this->_session->setExpirationSeconds($this->_expiration); // 3 hours
     }
 
     /**
      * Returns the user id
-     *
      * @return int
      */
     public function getUserId()
@@ -52,8 +46,16 @@ class Session implements StorageInterface
     }
 
     /**
+     * Returns the user email
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->_session->email;
+    }
+
+    /**
      * Returns seconds before vk de-auth you
-     *
      * @return int
      */
     public function getExpiresIn()
@@ -63,7 +65,6 @@ class Session implements StorageInterface
 
     /**
      * Returns the access token
-     *
      * @return string
      */
     public function getAccessToken()
@@ -73,7 +74,6 @@ class Session implements StorageInterface
 
     /**
      * Sets the current user id
-     *
      * @param int $uid
      */
     public function setUserId($uid)
@@ -82,8 +82,16 @@ class Session implements StorageInterface
     }
 
     /**
+     * Sets the current user email
+     * @param string $email
+     */
+    public function setEmail($email)
+    {
+        $this->_session->email = $email;
+    }
+
+    /**
      * Sets time of the token expiration
-     *
      * @param int $expires
      */
     public function setExpiresIn($expires)
@@ -93,7 +101,6 @@ class Session implements StorageInterface
 
     /**
      * Sets the access token
-     *
      * @param string $token
      */
     public function setAccessToken($token)

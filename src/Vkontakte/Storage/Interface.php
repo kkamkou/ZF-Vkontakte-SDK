@@ -17,6 +17,9 @@ interface StorageInterface
     public function setUserId($val);
     public function getUserId();
 
+    public function setEmail($val);
+    public function getEmail();
+
     public function setExpiresIn($val);
     public function getExpiresIn();
 

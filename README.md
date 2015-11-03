@@ -30,6 +30,15 @@ if (!$this->hasParam('error')) {
 }
 ```
 
+## Access to the storage object
+```php
+// auth process...
+$api->getStorage()->getUserId();
+$api->getStorage()->getExpiresIn();
+$api->getStorage()->getAccessToken();
+$api->getStorage()->getEmail();
+```
+
 ## Controller
 
 ```php
